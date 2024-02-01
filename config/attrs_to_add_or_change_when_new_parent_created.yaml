@@ -1,14 +1,8 @@
 metadata_identifier:
 title:
 dataset_production_status: Ongoing
-last_metadata_update:
-  update:
-    datetime:
-    type: Created
-data_access:
-  resource:
 related_information:
-  resource:
+  resource: # MAYBE
 dataset_citation:
   publication_date:
   title:

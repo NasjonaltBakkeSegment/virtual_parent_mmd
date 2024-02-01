@@ -18,4 +18,5 @@ def create_parent_mmd(parent, child):
     parent_mmd.read_parent_mmd()
     parent_mmd.read_child_mmd()
     parent_mmd.add_or_change_attributes(attributes_to_add_or_change)
+    parent_mmd.remove_attributes(attributes_to_remove)
     parent_mmd.save_parent_mmd()

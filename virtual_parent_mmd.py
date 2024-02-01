@@ -11,14 +11,12 @@ def main(args):
     child = args.child
     parent = args.parent
 
-    create_parent_mmd(parent, child)
-
-    # if os.path.exists(parent):
-    #     print("Parent {parent} exists. Updating it with metadata from new child.")
-    #     update_parent_mmd(parent, child)
-    # else:
-    #     print("Parent {parent} does not exist. Creating one")
-    #     create_parent_mmd(parent, child)
+    if os.path.exists(parent):
+        print("Parent {parent} exists. Updating it with metadata from new child.")
+        update_parent_mmd(parent, child)
+    else:
+        print("Parent {parent} does not exist. Creating one")
+        create_parent_mmd(parent, child)
 
 
 if __name__ == "__main__":
