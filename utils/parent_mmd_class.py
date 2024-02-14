@@ -3,7 +3,6 @@ from lxml import etree
 import os
 from datetime import datetime, timezone
 
-
 namespaces = {'mmd': 'http://www.met.no/schema/mmd'}
 current_timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
@@ -30,22 +29,23 @@ class Parent_MMD:
 
     def save_parent_mmd(self):
         self.parent_tree.write(
-            self.parent_mmd
+            self.parent_mmd,
+            pretty_print=True
         )
 
-    def get_parent_id(self):
+    def create_parent_id(self):
         related_dataset = self.parent_tree.find(
             f".//mmd:related_dataset",
             namespaces=namespaces
         ).text
         self.parent_id = related_dataset.split(':')[1]
 
-    def get_parent_url(self):
-        self.get_parent_id()
+    def create_parent_url(self):
+        self.create_parent_id()
         parent_url = f'https://data.met.no/dataset/{self.parent_id}'
         return parent_url
 
-    def get_parent_title(self):
+    def create_parent_title(self):
         try:
             # Title should be function of platform and orbit number
             orbit_number = self.parent_tree.find(
@@ -71,125 +71,91 @@ class Parent_MMD:
             title = 'Dummy title for old XML files without product info'
         return title
 
-    def add_or_change_attributes(self, attributes_to_add_or_change):
+    def add_or_change_attribute(self, element_name, element_value, language=None):
+        xml_element = self.parent_root.find(
+            element_name,
+            namespaces=self.parent_root.nsmap
+        )
+        if xml_element is not None:
+            xml_element.text = element_value
+        else:
+            # Create the new element
+            pass
+            '''
+            # Code doesn't work
+            # Create the new element
+            new_element = etree.Element("{%s}blob" % self.parent_root.nsmap)
+            new_element.text = "something"
+
+            # Append the new element to the root
+            self.parent_root.append(new_element)
+            '''
+
+    def add_or_change_attributes(self):
         '''
         Adding new attributes or updating existing attributes
         To be used only when the parent MMD file is first created
         '''
 
-        # last_metadata_update_datetime
-        last_metadata_update_datetime = self.parent_root.find(
-            ".//mmd:last_metadata_update/mmd:update/mmd:datetime",
-            namespaces=self.parent_root.nsmap
-        )
-        if last_metadata_update_datetime is not None:
-            last_metadata_update_datetime.text = current_timestamp
-
-        # last_metadata_update_type
-        last_metadata_update_type = self.parent_root.find(
-            ".//mmd:last_metadata_update/mmd:update/mmd:type",
-            namespaces=self.parent_root.nsmap
-        )
-        if last_metadata_update_type is not None:
-            last_metadata_update_type.text = 'Created'
-
-        for attribute, value in attributes_to_add_or_change.items():
-            xml_element = self.parent_root.find(
-                f".//mmd:{attribute}",
+        title = self.create_parent_title()
+        metadata_identifier = (
+            self.parent_root.find(
+                ".//mmd:related_dataset",
                 namespaces=self.parent_root.nsmap
-            )
-            if xml_element is not None:
-                # Update element
-                if value is None:
-                    # Populate element based on values in this script
-                    print(f'Updating element {attribute}')
+            ).text
+        )
 
-                    if attribute == 'title':
+        attributes = {
+            './/mmd:last_metadata_update/mmd:update/mmd:datetime': current_timestamp,
+            './/mmd:last_metadata_update/mmd:update/mmd:type': 'Created',
+            ".//mmd:title": title,
+            ".//mmd:metadata_identifier": metadata_identifier,
+            ".//mmd:dataset_production_status": 'Ongoing',
+            './/mmd:dataset_citation/mmd:publication_date': current_timestamp,
+            './/mmd:dataset_citation/mmd:title': title,
+            './/mmd:dataset_citation/mmd:url': self.create_parent_url(),
+        }
 
-                        xml_element.text = self.get_parent_title()
+        for attribute, value in attributes.items():
+            self.add_or_change_attribute(attribute, value)
 
-                    elif attribute == 'metadata_identifier':
-                        xml_element.text = (
-                            self.parent_root.find(
-                                ".//mmd:related_dataset",
-                                namespaces=self.parent_root.nsmap
-                            ).text
-                        )
-
-                elif isinstance(value, str):
-                    # Populate element based on value in config file
-                    print(f'Populate element based on value in config file: {attribute} - {value}')
-                    xml_element.text = value
-
-                elif isinstance(value, dict):
-                    # Nested attributes
-                    print(f'Nested attribute key: {attribute}')
-
-                    for child_attribute, val in value.items():
-                        if val is None:
-                            # Populate element based on values in this script
-
-                            # Find the nested child element under the parent
-                            child_element = xml_element.find(
-                                f"./mmd:{child_attribute}",
-                                namespaces=self.parent_root.nsmap
-                            ) # This is returning None when it shouldn't for title under dataset citation
-
-                            print(child_element)
-
-                            if child_element is not None:
-                                if child_attribute == 'title':
-                                    child_element.text = self.get_parent_title()
-
-                                elif child_attribute in ['publication_date']:
-                                    child_element.text = current_timestamp
-
-                                elif child_attribute == 'url':
-                                    child_element.text = self.get_parent_url()
-
-                        elif isinstance(val, str):
-                            # Populate element based on value in config file
-                            print(f'Populate element based on value in config file: {attribute}: {child_attribute} - {val}')
-                            child_element.text = val
-
-
-            else:
-                # Add element
-                print(f'Adding element {attribute}')
-                print(type(value))
-
-    def remove_attributes(self,attributes_to_remove):
+    def remove_attributes(self):
         '''
         MMD attributes in the child MMD file that should not be in parent
         These attributes should be removed
         '''
-        for attribute, value in attributes_to_remove.items():
+
+        attributes_to_remove = [
+            './/mmd:storage_information',
+            './/mmd:data_access',
+            './/mmd:related_dataset'
+        ]
+
+        for attribute in attributes_to_remove:
 
             # Find all instances of attribute
             xml_element_list = self.parent_root.findall(
-                f".//mmd:{attribute}",
+                attribute,
                 namespaces=self.parent_root.nsmap
             )
             for xml_element in xml_element_list:
                 if xml_element is not None:
-                    # Remove element
-                    if isinstance(value, dict) == False:
-                        xml_element.getparent().remove(xml_element)
+                    xml_element.getparent().remove(xml_element)
 
 
     def update_attributes(self):
         '''
         Updating MMD attributes for the parent each time a new child is added
         '''
-        print('updating attributes')
 
-        # last_metadata_update_datetime
-        last_metadata_update_datetime = self.parent_root.find(
-            ".//mmd:last_metadata_update/mmd:update/mmd:datetime",
-            namespaces=self.parent_root.nsmap
-        )
-        if last_metadata_update_datetime is not None:
-            last_metadata_update_datetime.text = current_timestamp
+        attributes = {
+            './/mmd:last_metadata_update/mmd:update/mmd:datetime': current_timestamp,
+            #'.//mmd:last_metadata_update/mmd:update/mmd:type': 'Created',
+
+        }
+
+        for attribute, value in attributes.items():
+            self.add_or_change_attribute(attribute, value)
 
         # temporal_extent_start_date
         start_date_parent_element = self.parent_root.find(
