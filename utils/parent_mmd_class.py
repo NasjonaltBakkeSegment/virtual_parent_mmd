@@ -98,6 +98,7 @@ class Parent_MMD:
         '''
 
         title = self.create_parent_title()
+        parent_url = self.create_parent_url()
         metadata_identifier = (
             self.parent_root.find(
                 ".//mmd:related_dataset",
@@ -113,7 +114,8 @@ class Parent_MMD:
             ".//mmd:dataset_production_status": 'Ongoing',
             './/mmd:dataset_citation/mmd:publication_date': current_timestamp,
             './/mmd:dataset_citation/mmd:title': title,
-            './/mmd:dataset_citation/mmd:url': self.create_parent_url(),
+            './/mmd:dataset_citation/mmd:url': parent_url,
+            './/mmd:related_information/mmd:resource': parent_url
         }
 
         for attribute, value in attributes.items():
@@ -148,14 +150,14 @@ class Parent_MMD:
         Updating MMD attributes for the parent each time a new child is added
         '''
 
-        attributes = {
-            './/mmd:last_metadata_update/mmd:update/mmd:datetime': current_timestamp,
-            #'.//mmd:last_metadata_update/mmd:update/mmd:type': 'Created',
+        # attributes = {
+        #     './/mmd:last_metadata_update/mmd:update/mmd:datetime': current_timestamp,
+        #     #'.//mmd:last_metadata_update/mmd:update/mmd:type': 'Created',
 
-        }
+        # }
 
-        for attribute, value in attributes.items():
-            self.add_or_change_attribute(attribute, value)
+        # for attribute, value in attributes.items():
+        #     self.add_or_change_attribute(attribute, value)
 
         # temporal_extent_start_date
         start_date_parent_element = self.parent_root.find(
