@@ -5,3 +5,9 @@ __pycache__/
 *.pyd
 *.pyz
 *.pyzw
+config/config.yml
+test_parent.xml
+S1*
+S2*
+S3*
+S5*
