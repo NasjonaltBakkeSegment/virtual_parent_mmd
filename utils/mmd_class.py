@@ -65,6 +65,16 @@ class Child(MMD):
         ).text
         self.parent_id = related_dataset.split(':')[1]
 
+    def update_if_needed(self):
+
+        missing_elements = self.check()
+        if missing_elements:
+            pass
+            #TODO: write code to add missing elements or make any other changes to child MMD
+            #self.write()
+        else:
+            print('The child MMD file is okay and the parent can be created or updated')
+
     def check(self):
         '''
         Check the child MMD file to make sure it has everything required to create the parent from
