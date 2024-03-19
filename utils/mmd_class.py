@@ -65,32 +65,102 @@ class Child(MMD):
         ).text
         self.parent_id = related_dataset.split(':')[1]
 
-    def update(self):
+    def get_orbit_number(self):
+        #TODO get from filename using a regular expression
+        return 'testing'
 
-        missing_elements = self.check()
-        if missing_elements:
-            pass
-            #TODO: write code to add missing elements or make any other changes to child MMD
-            #self.write()
-        else:
-            print('The child MMD file is okay and the parent can be created or updated')
+    def get_mode(self):
+        #TODO get from filename using a regular expression
+        return 'testing'
+
+    def get_product_type(self):
+        #TODO get from filename using a regular expression
+        return 'testing'
+
+    def update(self, conditions_not_met):
+
+        if "'orbit_absolute' element not found" in conditions_not_met:
+            # Find the parent element 'platform'
+            platform_element = self.root.find(".//{http://www.met.no/schema/mmd}platform")
+
+            # Create the new element 'orbit_absolute'
+            orbit_absolute_element = etree.Element("{http://www.met.no/schema/mmd}orbit_absolute")
+            orbit_absolute_element.text = self.get_orbit_number()
+
+            # Insert the 'orbit_absolute' element directly below the 'resource' element
+            resource_element = platform_element.find(".//{http://www.met.no/schema/mmd}resource")
+            platform_element.insert(platform_element.index(resource_element) + 1, orbit_absolute_element)
+
+            # Move the element after to a new line
+            orbit_absolute_element.tail = '\n\t\t'
+
+        if "'product_type' element not found" in conditions_not_met or "'mode' element not found" in conditions_not_met:
+            # Find the parent element 'platform'
+            platform_element = self.root.find(".//{http://www.met.no/schema/mmd}platform")
+
+            # Find the 'instrument' element within the 'platform' element
+            instrument_element = platform_element.find(".//{http://www.met.no/schema/mmd}instrument")
+
+            # Find the 'resource' element within the 'instrument' element
+            resource_element = instrument_element.find(".//{http://www.met.no/schema/mmd}resource")
+
+            # Add indentation to the 'tail' of the 'resource' element
+            resource_element.tail = '\n\t\t\t'
+
+            if "'mode' element not found" in conditions_not_met:
+                # Create the new element 'mode'
+                mode_element = etree.Element("{http://www.met.no/schema/mmd}mode")
+                mode_element.text = self.get_mode()
+                # Insert the 'mode' element after the 'resource' element
+                instrument_element.insert(instrument_element.index(resource_element) + 1, mode_element)
+
+            # Find the 'mode' element within the 'instrument' element
+            mode_element = instrument_element.find(".//{http://www.met.no/schema/mmd}mode")
+            mode_element.tail = '\n\t\t\t'
+
+            if "'product_type' element not found" in conditions_not_met:
+                # Create the new element 'product_type'
+                product_type_element = etree.Element("{http://www.met.no/schema/mmd}product_type")
+                product_type_element.text = self.get_product_type()
+                # Insert the 'product_type' element after the 'mode' element
+                instrument_element.insert(instrument_element.index(mode_element) + 1, product_type_element)
+
+            # Find the 'product_type' element within the 'instrument' element
+            product_type_element = instrument_element.find(".//{http://www.met.no/schema/mmd}product_type")
+            # Move the close of the 'instrument' element to a new line
+            product_type_element.tail = '\n\t\t'
+
+        if "'related_dataset' element not found" in conditions_not_met:
+            # Create the new element 'related_dataset'
+            related_dataset_element = etree.Element("{http://www.met.no/schema/mmd}related_dataset")
+            related_dataset_element.set("relation_type", "parent")
+            related_dataset_element.text = "FUNCTION TO CREATE ELEMENT"
+            #TODO: computing ID should be a submodule in a separate repository so we can call it in safe_to_netcdf or this repository
+
+            storage_information_element = self.root.find(".//{http://www.met.no/schema/mmd}storage_information")
+
+            # Insert the 'related_dataset' element before the 'storage_information' element
+            self.root.insert(self.root.index(storage_information_element), related_dataset_element)
+
+            # New line after the 'related_dataset' element
+            related_dataset_element.tail = '\n\t'
+
 
     def check(self):
         '''
         Check the child MMD file to make sure it has everything required to create the parent from
         If required elements are missing, add them
         '''
-        '''
         #TODO: Do I also need geographic extent and anything else modified in the parent? Or can I assume that this is there?
-        If not, then the child can be an orphan to perhaps address later?
-        '''
+        #TODO: If not, then the child can be an orphan to perhaps address later?
+
         conditions_not_met = []
 
-        orbit_number = self.tree.find(
+        orbit_absolute = self.tree.find(
             f".//mmd:orbit_absolute",
             namespaces=namespaces
         )
-        if orbit_number is None:
+        if orbit_absolute is None:
             conditions_not_met.append("'orbit_absolute' element not found")
 
         product_type = self.tree.find(
@@ -124,7 +194,7 @@ class Child(MMD):
 
 
 class Parent(MMD):
-
+    #TODO: Generate ID of parent
     def __init__(self, filepath):
         super().__init__(filepath)
 

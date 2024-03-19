@@ -34,6 +34,7 @@ def get_child_path(child,cfg):
     else:
         sys.exit(f"Could not find product at {child_path}")
 
+
 def main(args):
 
     child = args.child
