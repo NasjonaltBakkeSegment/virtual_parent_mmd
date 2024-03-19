@@ -65,7 +65,7 @@ class Child(MMD):
         ).text
         self.parent_id = related_dataset.split(':')[1]
 
-    def update_if_needed(self):
+    def update(self):
 
         missing_elements = self.check()
         if missing_elements:
@@ -80,7 +80,41 @@ class Child(MMD):
         Check the child MMD file to make sure it has everything required to create the parent from
         If required elements are missing, add them
         '''
-        #TODO: write this function
+        '''
+        #TODO: Do I also need geographic extent and anything else modified in the parent? Or can I assume that this is there?
+        If not, then the child can be an orphan to perhaps address later?
+        '''
+        conditions_not_met = []
+
+        orbit_number = self.tree.find(
+            f".//mmd:orbit_absolute",
+            namespaces=namespaces
+        )
+        if orbit_number is None:
+            conditions_not_met.append("'orbit_absolute' element not found")
+
+        product_type = self.tree.find(
+            f".//mmd:product_type",
+            namespaces=namespaces
+        )
+        if product_type is None:
+            conditions_not_met.append("'product_type' element not found")
+
+        mode = self.tree.find(
+            f".//mmd:mode",
+            namespaces=namespaces
+        )
+        if mode is None:
+            conditions_not_met.append("'mode' element not found")
+
+        related_dataset = self.tree.find(
+            f".//mmd:related_dataset",
+            namespaces=namespaces
+        )
+        if related_dataset is None:
+            conditions_not_met.append("'related_dataset' element not found")
+
+        return conditions_not_met
 
     def copy(self, destination):
         '''
