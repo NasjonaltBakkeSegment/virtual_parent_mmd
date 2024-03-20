@@ -87,12 +87,11 @@ class Child(MMD):
             orbit_absolute_element = etree.Element("{http://www.met.no/schema/mmd}orbit_absolute")
             orbit_absolute_element.text = self.get_orbit_number()
 
-            # Insert the 'orbit_absolute' element directly below the 'resource' element
-            resource_element = platform_element.find(".//{http://www.met.no/schema/mmd}resource")
-            platform_element.insert(platform_element.index(resource_element) + 1, orbit_absolute_element)
-
+            # Insert the 'orbit_absolute' element at the beginning of the 'platform' element
+            platform_element.insert(0, orbit_absolute_element)
             # Move the element after to a new line
             orbit_absolute_element.tail = '\n\t\t'
+
 
         if "'product_type' element not found" in conditions_not_met or "'mode' element not found" in conditions_not_met:
             # Find the parent element 'platform'
@@ -101,34 +100,21 @@ class Child(MMD):
             # Find the 'instrument' element within the 'platform' element
             instrument_element = platform_element.find(".//{http://www.met.no/schema/mmd}instrument")
 
-            # Find the 'resource' element within the 'instrument' element
-            resource_element = instrument_element.find(".//{http://www.met.no/schema/mmd}resource")
-
-            # Add indentation to the 'tail' of the 'resource' element
-            resource_element.tail = '\n\t\t\t'
-
             if "'mode' element not found" in conditions_not_met:
                 # Create the new element 'mode'
                 mode_element = etree.Element("{http://www.met.no/schema/mmd}mode")
                 mode_element.text = self.get_mode()
-                # Insert the 'mode' element after the 'resource' element
-                instrument_element.insert(instrument_element.index(resource_element) + 1, mode_element)
-
-            # Find the 'mode' element within the 'instrument' element
-            mode_element = instrument_element.find(".//{http://www.met.no/schema/mmd}mode")
-            mode_element.tail = '\n\t\t\t'
+                # Insert the 'mode' element at the beginning of the 'instrument' element
+                instrument_element.insert(0, mode_element)
+                mode_element.tail = '\n\t\t\t'
 
             if "'product_type' element not found" in conditions_not_met:
                 # Create the new element 'product_type'
                 product_type_element = etree.Element("{http://www.met.no/schema/mmd}product_type")
                 product_type_element.text = self.get_product_type()
-                # Insert the 'product_type' element after the 'mode' element
-                instrument_element.insert(instrument_element.index(mode_element) + 1, product_type_element)
-
-            # Find the 'product_type' element within the 'instrument' element
-            product_type_element = instrument_element.find(".//{http://www.met.no/schema/mmd}product_type")
-            # Move the close of the 'instrument' element to a new line
-            product_type_element.tail = '\n\t\t'
+                # Insert the 'product_type' element at the beginning of the 'instrument' element
+                instrument_element.insert(0, product_type_element)
+                product_type_element.tail = '\n\t\t\t'
 
         if "'related_dataset' element not found" in conditions_not_met:
             # Create the new element 'related_dataset'
@@ -137,13 +123,12 @@ class Child(MMD):
             related_dataset_element.text = "FUNCTION TO CREATE ELEMENT"
             #TODO: computing ID should be a submodule in a separate repository so we can call it in safe_to_netcdf or this repository
 
-            storage_information_element = self.root.find(".//{http://www.met.no/schema/mmd}storage_information")
-
-            # Insert the 'related_dataset' element before the 'storage_information' element
-            self.root.insert(self.root.index(storage_information_element), related_dataset_element)
-
-            # New line after the 'related_dataset' element
-            related_dataset_element.tail = '\n\t'
+            children = self.root.getchildren()
+            index_of_last_element = len(children) - 1
+            last_element = children[index_of_last_element]
+            last_element.tail = '\n\t'
+            self.root.insert(index_of_last_element+1,related_dataset_element)
+            related_dataset_element.tail = '\n'
 
 
     def check(self):
