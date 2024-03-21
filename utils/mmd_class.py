@@ -2,16 +2,19 @@ import shutil
 from lxml import etree
 import os
 from datetime import datetime, timezone
+from sentinelsat import SentinelAPI
+from sentinel_parent_id_generator.generate_parent_id import generate_parent_id
 
 namespaces = {'mmd': 'http://www.met.no/schema/mmd'}
 current_timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
 class MMD:
 
-    def __init__(self, filepath):
+    def __init__(self, filepath, cfg):
         self.filepath = filepath
         self.filename = os.path.basename(self.filepath)
         self.child_mmd_filename = self.filename
+        self.cfg = cfg
 
     def read(self):
         self.tree = etree.parse(self.filepath)
@@ -55,48 +58,15 @@ class MMD:
 
 class Child(MMD):
 
-    def __init__(self, filepath):
-        super().__init__(filepath)
-
-    def get_parent_id(self):
-        related_dataset = self.tree.find(
-            f".//mmd:related_dataset",
-            namespaces=namespaces
-        ).text
-        self.parent_id = related_dataset.split(':')[1]
-
-    def get_orbit_number(self):
-        #TODO get from filename using a regular expression
-        return 'testing'
-
-    def get_mode(self):
-        #TODO get from filename using a regular expression
-        return 'testing'
-
-    def get_product_type(self):
-        #TODO get from filename using a regular expression
-        return 'testing'
+    def __init__(self, filepath, cfg):
+        super().__init__(filepath, cfg)
+        self.parent_id, self.metadata = generate_parent_id(self.filename)
 
     def update(self, conditions_not_met):
-
-        if "'orbit_absolute' element not found" in conditions_not_met:
-            # Find the parent element 'platform'
-            platform_element = self.root.find(".//{http://www.met.no/schema/mmd}platform")
-
-            # Create the new element 'orbit_absolute'
-            orbit_absolute_element = etree.Element("{http://www.met.no/schema/mmd}orbit_absolute")
-            orbit_absolute_element.text = self.get_orbit_number()
-
-            # Insert the 'orbit_absolute' element at the beginning of the 'platform' element
-            platform_element.insert(0, orbit_absolute_element)
-            # Move the element after to a new line
-            orbit_absolute_element.tail = '\n\t\t'
-
 
         if "'product_type' element not found" in conditions_not_met or "'mode' element not found" in conditions_not_met:
             # Find the parent element 'platform'
             platform_element = self.root.find(".//{http://www.met.no/schema/mmd}platform")
-
             # Find the 'instrument' element within the 'platform' element
             instrument_element = platform_element.find(".//{http://www.met.no/schema/mmd}instrument")
 
@@ -120,8 +90,7 @@ class Child(MMD):
             # Create the new element 'related_dataset'
             related_dataset_element = etree.Element("{http://www.met.no/schema/mmd}related_dataset")
             related_dataset_element.set("relation_type", "parent")
-            related_dataset_element.text = "FUNCTION TO CREATE ELEMENT"
-            #TODO: computing ID should be a submodule in a separate repository so we can call it in safe_to_netcdf or this repository
+            related_dataset_element.text = self.parent_id
 
             children = self.root.getchildren()
             index_of_last_element = len(children) - 1
@@ -136,17 +105,8 @@ class Child(MMD):
         Check the child MMD file to make sure it has everything required to create the parent from
         If required elements are missing, add them
         '''
-        #TODO: Do I also need geographic extent and anything else modified in the parent? Or can I assume that this is there?
-        #TODO: If not, then the child can be an orphan to perhaps address later?
 
         conditions_not_met = []
-
-        orbit_absolute = self.tree.find(
-            f".//mmd:orbit_absolute",
-            namespaces=namespaces
-        )
-        if orbit_absolute is None:
-            conditions_not_met.append("'orbit_absolute' element not found")
 
         product_type = self.tree.find(
             f".//mmd:product_type",
@@ -155,12 +115,13 @@ class Child(MMD):
         if product_type is None:
             conditions_not_met.append("'product_type' element not found")
 
-        mode = self.tree.find(
-            f".//mmd:mode",
-            namespaces=namespaces
-        )
-        if mode is None:
-            conditions_not_met.append("'mode' element not found")
+        if self.filename.startswith('S1'):
+            mode = self.tree.find(
+                f".//mmd:mode",
+                namespaces=namespaces
+            )
+            if mode is None:
+                conditions_not_met.append("'mode' element not found")
 
         related_dataset = self.tree.find(
             f".//mmd:related_dataset",
@@ -179,13 +140,11 @@ class Child(MMD):
 
 
 class Parent(MMD):
-    #TODO: Generate ID of parent
-    def __init__(self, filepath):
-        super().__init__(filepath)
+    def __init__(self, filepath, cfg):
+        super().__init__(filepath, cfg)
 
     def define_url(self, child_MMD):
-        child_MMD.get_parent_id()
-        parent_url = f'https://data.met.no/dataset/{self.parent_id}'
+        parent_url = f'https://data.met.no/dataset/{child_MMD.parent_id}'
         return parent_url
 
     def define_title(self, child_MMD):

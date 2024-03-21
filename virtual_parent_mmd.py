@@ -46,10 +46,10 @@ def main(args):
 
     if os.path.exists(parent):
         print("Parent {parent} exists. Updating it with metadata from new child.")
-        update_parent_mmd(parent, child_path)
+        update_parent_mmd(parent, child_path, cfg)
     else:
         print("Parent {parent} does not exist. Creating one")
-        create_parent_mmd(parent, child_path)
+        create_parent_mmd(parent, child_path, cfg)
 
 
 if __name__ == "__main__":

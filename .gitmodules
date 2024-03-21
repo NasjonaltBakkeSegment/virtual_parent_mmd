@@ -1,0 +1,3 @@
+[submodule "sentinel_parent_id_generator"]
+	path = sentinel_parent_id_generator
+	url = git@github.com:NasjonaltBakkeSegment/sentinel_parent_id_generator.git
