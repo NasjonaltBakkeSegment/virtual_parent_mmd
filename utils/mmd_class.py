@@ -26,7 +26,7 @@ class MMD:
             pretty_print=True
         )
 
-    def add_or_change_element(self, element_name, element_value, language=None):
+    def update_element(self, element_name, element_value, language=None):
         xml_element = self.root.find(
             element_name,
             namespaces=self.root.nsmap
@@ -34,17 +34,7 @@ class MMD:
         if xml_element is not None:
             xml_element.text = element_value
         else:
-            # Create the new element
             pass
-            '''
-            # Code doesn't work
-            # Create the new element
-            new_element = etree.Element("{%s}blob" % self.root.nsmap)
-            new_element.text = "something"
-
-            # Append the new element to the root
-            self.root.append(new_element)
-            '''
 
     def remove_element(self, element):
         # Find all instances of element
@@ -186,7 +176,7 @@ class Parent(MMD):
         for element in elements_to_remove:
             self.remove_element(element)
 
-    def add_or_change_elements(self, child_MMD):
+    def update_elements_first_child(self, child_MMD):
         '''
         Adding new elements or updating existing elements
         To be used only when the parent MMD file is first created
@@ -213,21 +203,12 @@ class Parent(MMD):
         }
 
         for element, value in elements.items():
-            self.add_or_change_element(element, value)
+            self.update_element(element, value)
 
-    def update_elements(self, child_MMD):
+    def update_elements_new_child(self, child_MMD):
         '''
         Updating MMD elements for the parent each time a new child is added
         '''
-
-        # elements = {
-        #     './/mmd:last_metadata_update/mmd:update/mmd:datetime': current_timestamp,
-        #     #'.//mmd:last_metadata_update/mmd:update/mmd:type': 'Created',
-
-        # }
-
-        # for element, value in elements.items():
-        #     self.add_or_change_element(element, value)
 
         # temporal_extent_start_date
         start_date_parent_element = self.root.find(
