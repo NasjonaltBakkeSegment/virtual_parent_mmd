@@ -13,7 +13,6 @@ class MMD:
     def __init__(self, filepath, cfg):
         self.filepath = filepath
         self.filename = os.path.basename(self.filepath)
-        self.child_mmd_filename = self.filename
         self.cfg = cfg
 
     def read(self):
@@ -50,7 +49,7 @@ class Child(MMD):
 
     def __init__(self, filepath, cfg):
         super().__init__(filepath, cfg)
-        self.parent_id, self.metadata = generate_parent_id(self.filename)
+        self.parent_id, self.metadata, parent_name = generate_parent_id(self.filename)
 
     def update(self, conditions_not_met):
 
