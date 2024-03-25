@@ -1,12 +1,12 @@
 from utils.mmd_class import Parent, Child
 
 
-def create_parent_mmd(parent_filepath, child_filepath, cfg):
+def create_parent_mmd(parent_filepath, child_filepath, cfg, parent_id, metadata):
     '''
     Function to create a new parent MMD file
     '''
     parent_mmd = Parent(parent_filepath, cfg)
-    child_mmd = Child(child_filepath, cfg)
+    child_mmd = Child(child_filepath, cfg, parent_id, metadata)
     child_mmd.read()
     conditions_not_met = child_mmd.check()
     if len(conditions_not_met) > 0:

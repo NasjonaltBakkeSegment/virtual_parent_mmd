@@ -47,9 +47,10 @@ class MMD:
 
 class Child(MMD):
 
-    def __init__(self, filepath, cfg):
+    def __init__(self, filepath, cfg, parent_id, metadata):
         super().__init__(filepath, cfg)
-        self.parent_id, self.metadata, parent_name = generate_parent_id(self.filename)
+        self.parent_id = parent_id
+        self.metadata = metadata
 
     def update(self, conditions_not_met):
 
