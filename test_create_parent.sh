@@ -1,7 +1,7 @@
 # Script for generating a parent XML file from 2 children
 
 # Set the directory path
-directory="/home/lukem/Documents/MET/Projects/ESA_NBS/Git_repos/nbs-md-records/S1A/"
+directory="/home/lukem/Documents/MET/Projects/ESA_NBS/Git_repos/nbs-md-records/S2B/"
 
 # Find all XML files recursively in the directory and loop through them
 find "$directory" -type f -name '*.xml' | while read -r xml_file_path; do

@@ -16,6 +16,9 @@ def create_parent_mmd(parent_filepath, child_filepath, cfg, parent_id, metadata)
         child_mmd.read()
         conditions_not_met = child_mmd.check()
     if len(conditions_not_met) > 0:
+        with open('problems.txt', 'a') as file:
+            # Append the line to the file
+            file.write(child_filepath + '\n')
         raise ValueError(
             "The child MMD file does not contain all the elements required to create the parent MMD file"
             )

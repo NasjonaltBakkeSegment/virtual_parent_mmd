@@ -63,7 +63,7 @@ class Child(MMD):
             if "'mode' element not found" in conditions_not_met:
                 # Create the new element 'mode'
                 mode_element = etree.Element("{http://www.met.no/schema/mmd}mode")
-                mode_element.text = self.get_mode()
+                mode_element.text = self.metadata['mode']
                 # Insert the 'mode' element at the beginning of the 'instrument' element
                 instrument_element.insert(0, mode_element)
                 mode_element.tail = '\n\t\t\t'
@@ -71,7 +71,7 @@ class Child(MMD):
             if "'product_type' element not found" in conditions_not_met:
                 # Create the new element 'product_type'
                 product_type_element = etree.Element("{http://www.met.no/schema/mmd}product_type")
-                product_type_element.text = self.get_product_type()
+                product_type_element.text = self.metadata['producttype']
                 # Insert the 'product_type' element at the beginning of the 'instrument' element
                 instrument_element.insert(0, product_type_element)
                 product_type_element.tail = '\n\t\t\t'
@@ -85,7 +85,7 @@ class Child(MMD):
             children = self.root.getchildren()
             index_of_last_element = len(children) - 1
             last_element = children[index_of_last_element]
-            last_element.tail = '\n\t'
+            last_element.tail = '\n  '
             self.root.insert(index_of_last_element+1,related_dataset_element)
             related_dataset_element.tail = '\n'
 
@@ -98,13 +98,16 @@ class Child(MMD):
 
         conditions_not_met = []
 
-        product_type = self.tree.find(
-            f".//mmd:product_type",
-            namespaces=namespaces
-        )
-        if product_type is None:
-            conditions_not_met.append("'product_type' element not found")
+        # All platforms except S3 should have a 'product_type' element
+        if not self.filename.startswith('S3'):
+            product_type = self.tree.find(
+                f".//mmd:product_type",
+                namespaces=namespaces
+            )
+            if product_type is None:
+                conditions_not_met.append("'product_type' element not found")
 
+        # Only S1 products need to have a 'mode' element
         if self.filename.startswith('S1'):
             mode = self.tree.find(
                 f".//mmd:mode",
@@ -112,6 +115,16 @@ class Child(MMD):
             )
             if mode is None:
                 conditions_not_met.append("'mode' element not found")
+
+        # Only S3 products need to have an 'instrument' element
+        # TODO: It is not decided how instrument will be encoded in S3 MMD products so this should be revisted.
+        if self.filename.startswith('S3'):
+            mode = self.tree.find(
+                f".//mmd:instrument",
+                namespaces=namespaces
+            )
+            if mode is None:
+                conditions_not_met.append("'instrument' element not found")
 
         related_dataset = self.tree.find(
             f".//mmd:related_dataset",
@@ -137,32 +150,6 @@ class Parent(MMD):
         parent_url = f'https://data.met.no/dataset/{child_MMD.parent_id}'
         return parent_url
 
-    def define_title(self, child_MMD):
-        try:
-            # Title should be function of platform and orbit number
-            orbit_number = child_MMD.tree.find(
-                f".//mmd:orbit_absolute",
-                namespaces=namespaces
-            ).text
-
-            product_type = child_MMD.tree.find(
-                f".//mmd:product_type",
-                namespaces=namespaces
-            ).text
-
-            mode = child_MMD.tree.find(
-                f".//mmd:mode",
-                namespaces=namespaces
-            ).text
-
-            # Platform is first part of child title
-            old_title = child_MMD.filename.split('_')[0]
-            platform = old_title.split('_')[0]
-            title = f'{platform}_{mode}_{product_type}_orbit_{orbit_number}'
-        except:
-            title = 'Dummy title for old XML files without product info'
-        return title
-
     def remove_elements(self):
         '''
         MMD elements in the child MMD file that should not be in parent
@@ -176,12 +163,18 @@ class Parent(MMD):
         for element in elements_to_remove:
             self.remove_element(element)
 
+        # Fixing indentation after last element
+        children = self.root.getchildren()
+        index_of_last_element = len(children) - 1
+        last_element = children[index_of_last_element]
+        last_element.tail = '\n'
+
     def update_elements_first_child(self, child_MMD):
         '''
         Adding new elements or updating existing elements
         To be used only when the parent MMD file is first created
         '''
-        title = self.define_title(child_MMD)
+        title = self.filename
         parent_url = self.define_url(child_MMD)
         metadata_identifier = (
             child_MMD.root.find(

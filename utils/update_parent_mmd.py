@@ -16,9 +16,13 @@ def update_parent_mmd(parent_filepath, child_filepath, cfg, parent_id, metadata)
         child_mmd.read()
         conditions_not_met = child_mmd.check()
     if "'related_dataset' element not found" in conditions_not_met:
+        with open('problems.txt', 'a') as file:
+            # Append the line to the file
+            file.write(child_filepath + '\n')
         raise ValueError(
             "The child MMD file does not contain the ID of the parent, so can't add the child to a parent"
             )
+
     else:
         parent_mmd.read()
         parent_mmd.update_elements_new_child(child_mmd)
