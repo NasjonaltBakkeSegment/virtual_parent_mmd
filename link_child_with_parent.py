@@ -102,6 +102,7 @@ def assign_parent_to_child(child):
         with open(cfg['orphans_file'], 'a') as file:
             file.write(child + '\n')
 
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
