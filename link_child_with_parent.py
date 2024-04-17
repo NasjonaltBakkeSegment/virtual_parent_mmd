@@ -111,6 +111,7 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
+        "-c",
         "--child",
         type=str,
         required=True,

@@ -2,7 +2,6 @@ import shutil
 from lxml import etree
 import os
 from datetime import datetime, timezone
-from sentinelsat import SentinelAPI
 from sentinel_parent_id_generator.generate_parent_id import generate_parent_id
 
 namespaces = {'mmd': 'http://www.met.no/schema/mmd'}
@@ -11,7 +10,7 @@ current_timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[
 class MMD:
 
     def __init__(self, filepath, cfg):
-        self.filepath = filepath
+        self.filepath = str(filepath)
         self.filename = os.path.basename(self.filepath)
         self.cfg = cfg
 
