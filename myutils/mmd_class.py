@@ -58,6 +58,11 @@ class Child(MMD):
             platform_element = self.root.find(".//{http://www.met.no/schema/mmd}platform")
             # Find the 'instrument' element within the 'platform' element
             instrument_element = platform_element.find(".//{http://www.met.no/schema/mmd}instrument")
+            if instrument_element is None:
+                tail = '\n\t\t'
+                instrument_element = self.root.find(".//{http://www.met.no/schema/mmd}instrument")
+            else:
+                tail = '\n\t\t\t'
 
             if "'mode' element not found" in conditions_not_met:
                 # Create the new element 'mode'
@@ -65,7 +70,7 @@ class Child(MMD):
                 mode_element.text = self.metadata['mode']
                 # Insert the 'mode' element at the beginning of the 'instrument' element
                 instrument_element.insert(0, mode_element)
-                mode_element.tail = '\n\t\t\t'
+                mode_element.tail = tail
 
             if "'product_type' element not found" in conditions_not_met:
                 # Create the new element 'product_type'
@@ -73,7 +78,7 @@ class Child(MMD):
                 product_type_element.text = self.metadata['producttype']
                 # Insert the 'product_type' element at the beginning of the 'instrument' element
                 instrument_element.insert(0, product_type_element)
-                product_type_element.tail = '\n\t\t\t'
+                product_type_element.tail = tail
 
         if "'related_dataset' element not found" in conditions_not_met:
             # Create the new element 'related_dataset'
@@ -215,7 +220,11 @@ class Parent(MMD):
             start_date_parent_text = start_date_parent_element.text
             start_date_child_text = start_date_child_element.text
             start_date_parent_dt = datetime.strptime(start_date_parent_text, '%Y-%m-%dT%H:%M:%S.%fZ')
-            start_date_child_dt = datetime.strptime(start_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
+            try:
+                start_date_child_dt = datetime.strptime(start_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
+            except:
+                start_date_child_text = start_date_child_text + 'T00:00:00.000Z'
+                start_date_child_dt = datetime.strptime(start_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
             if start_date_child_dt < start_date_parent_dt:
                 start_date_parent_element.text = start_date_child_element.text
             else:
@@ -234,7 +243,11 @@ class Parent(MMD):
             end_date_parent_text = end_date_parent_element.text
             end_date_child_text = end_date_child_element.text
             end_date_parent_dt = datetime.strptime(end_date_parent_text, '%Y-%m-%dT%H:%M:%S.%fZ')
-            end_date_child_dt = datetime.strptime(end_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
+            try:
+                end_date_child_dt = datetime.strptime(end_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
+            except:
+                end_date_child_text = end_date_child_text + 'T00:00:00.000Z'
+                end_date_child_dt = datetime.strptime(end_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
             if end_date_child_dt > end_date_parent_dt:
                 end_date_parent_element.text = end_date_child_element.text
             else:
