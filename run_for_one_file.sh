@@ -15,5 +15,5 @@
 ## ---------------------------
 
 # Script for linking all children to parents in the NBS mmd products directory
-python3 link_child_with_parent.py -c S2B_MSIL1C_20240423T125709_N0510_R038_T28WFE_20240423T135214
+python3 link_child_with_parent.py -c S1A_EW_GRDM_1SDH_20190119T181350_20190119T181450_025550_02D591_454C.xml
 

@@ -14,3 +14,4 @@ S5*
 test*
 orphans.txt
 *.sh.*
+invalid_*
