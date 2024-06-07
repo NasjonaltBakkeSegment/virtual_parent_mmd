@@ -46,7 +46,7 @@ class MMD:
 
 class Child(MMD):
 
-    def __init__(self, filepath, cfg, parent_id, metadata):
+    def __init__(self, filepath, cfg, parent_id=None, metadata=None):
         super().__init__(filepath, cfg)
         self.parent_id = parent_id
         self.metadata = metadata
@@ -253,70 +253,72 @@ class Parent(MMD):
             else:
                 pass
 
+        # Extent looks off in parent products so removing this code and populating manually
+        # Based on child products already there (covering several years)
         # geographic extent rectangle north
-        north_parent_element = self.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:north",
-            namespaces=self.root.nsmap
-        )
-        north_child_element = child_MMD.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:north",
-            namespaces=child_MMD.root.nsmap
-        )
-        if north_parent_element is not None and north_child_element is not None:
-            north_parent_text = north_parent_element.text
-            north_child_text = north_child_element.text
-            if north_child_text > north_parent_text:
-                north_parent_element.text = north_child_element.text
-            else:
-                pass
+        #north_parent_element = self.root.find(
+        #    ".//mmd:geographic_extent/mmd:rectangle/mmd:north",
+        #    namespaces=self.root.nsmap
+        #)
+        #north_child_element = child_MMD.root.find(
+        #    ".//mmd:geographic_extent/mmd:rectangle/mmd:north",
+        #    namespaces=child_MMD.root.nsmap
+        #)
+        #if north_parent_element is not None and north_child_element is not None:
+        #    north_parent_text = north_parent_element.text
+        #    north_child_text = north_child_element.text
+        #    if north_child_text > north_parent_text:
+        #        north_parent_element.text = north_child_element.text
+        #    else:
+        #        pass
 
         # geographic extent rectangle east
-        east_parent_element = self.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:east",
-            namespaces=self.root.nsmap
-        )
-        east_child_element = child_MMD.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:east",
-            namespaces=child_MMD.root.nsmap
-        )
-        if east_parent_element is not None and east_child_element is not None:
-            east_parent_text = east_parent_element.text
-            east_child_text = east_child_element.text
-            if east_child_text > east_parent_text:
-                east_parent_element.text = east_child_element.text
-            else:
-                pass
+        #east_parent_element = self.root.find(
+        #    ".//mmd:geographic_extent/mmd:rectangle/mmd:east",
+        #    namespaces=self.root.nsmap
+        #)
+        #east_child_element = child_MMD.root.find(
+        #    ".//mmd:geographic_extent/mmd:rectangle/mmd:east",
+        #    namespaces=child_MMD.root.nsmap
+        #)
+        #if east_parent_element is not None and east_child_element is not None:
+        #    east_parent_text = east_parent_element.text
+        #    east_child_text = east_child_element.text
+        #    if east_child_text > east_parent_text:
+        #        east_parent_element.text = east_child_element.text
+        #    else:
+        #        pass
 
         # geographic extent rectangle south
-        south_parent_element = self.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:south",
-            namespaces=self.root.nsmap
-        )
-        south_child_element = child_MMD.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:south",
-            namespaces=child_MMD.root.nsmap
-        )
-        if south_parent_element is not None and south_child_element is not None:
-            south_parent_text = south_parent_element.text
-            south_child_text = south_child_element.text
-            if south_child_text < south_parent_text:
-                south_parent_element.text = south_child_element.text
-            else:
-                pass
+        #south_parent_element = self.root.find(
+        #    ".//mmd:geographic_extent/mmd:rectangle/mmd:south",
+        #    namespaces=self.root.nsmap
+        #)
+        #south_child_element = child_MMD.root.find(
+        #    ".//mmd:geographic_extent/mmd:rectangle/mmd:south",
+        #    namespaces=child_MMD.root.nsmap
+        #)
+        #if south_parent_element is not None and south_child_element is not None:
+        #    south_parent_text = south_parent_element.text
+        #    south_child_text = south_child_element.text
+        #    if south_child_text < south_parent_text:
+        #        south_parent_element.text = south_child_element.text
+        #    else:
+        #        pass
 
         # geographic extent rectangle west
-        west_parent_element = self.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:west",
-            namespaces=self.root.nsmap
-        )
-        west_child_element = child_MMD.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:west",
-            namespaces=child_MMD.root.nsmap
-        )
-        if west_parent_element is not None and west_child_element is not None:
-            west_parent_text = west_parent_element.text
-            west_child_text = west_child_element.text
-            if west_child_text < west_parent_text:
-                west_parent_element.text = west_child_element.text
-            else:
-                pass
+        #west_parent_element = self.root.find(
+        #    ".//mmd:geographic_extent/mmd:rectangle/mmd:west",
+        #    namespaces=self.root.nsmap
+        #)
+        #west_child_element = child_MMD.root.find(
+        #    ".//mmd:geographic_extent/mmd:rectangle/mmd:west",
+        #    namespaces=child_MMD.root.nsmap
+        #)
+        #if west_parent_element is not None and west_child_element is not None:
+        #    west_parent_text = west_parent_element.text
+        #    west_child_text = west_child_element.text
+        #    if west_child_text < west_parent_text:
+        #        west_parent_element.text = west_child_element.text
+        #    else:
+        #        pass
