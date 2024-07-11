@@ -3,9 +3,19 @@ from lxml import etree
 import os
 from datetime import datetime, timezone
 from sentinel_parent_id_generator.generate_parent_id import generate_parent_id
+from shapely.geometry import Polygon, box
 
 namespaces = {'mmd': 'http://www.met.no/schema/mmd'}
 current_timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+polygon = Polygon([
+    (-20.263238824222373, 84.8852877777822),
+    (-36.25445787748578, 67.02581594412311),
+    (11.148084316116405, 52.31593720759386),
+    (45.98609725358305, 63.94940066151824),
+    (89.96194965005743, 84.8341192704811),
+    (-20.263238824222373, 84.8852877777822),
+    (-20.263238824222373, 84.8852877777822)
+    ])
 
 class MMD:
 
@@ -17,6 +27,7 @@ class MMD:
     def read(self):
         self.tree = etree.parse(self.filepath)
         self.root = self.tree.getroot()
+        self.ns = self.root.nsmap
 
     def write(self):
         self.tree.write(
@@ -27,7 +38,7 @@ class MMD:
     def update_element(self, element_name, element_value, language=None):
         xml_element = self.root.find(
             element_name,
-            namespaces=self.root.nsmap
+            namespaces=self.ns
         )
         if xml_element is not None:
             xml_element.text = element_value
@@ -38,11 +49,52 @@ class MMD:
         # Find all instances of element
         xml_element_list = self.root.findall(
             element,
-            namespaces=self.root.nsmap
+            namespaces=self.ns
         )
         for xml_element in xml_element_list:
             if xml_element is not None:
                 xml_element.getparent().remove(xml_element)
+
+    def check_if_active(self):
+        # Find the metadata_status element
+        metadata_status = self.root.xpath('.//mmd:metadata_status', namespaces=self.ns)
+
+        if metadata_status:
+            # Check if the status is "Active"
+            return metadata_status[0].text == "Active"
+        else:
+            return False
+
+    def get_geospatial_extents(self):
+        # Extract the geographic extent coordinates
+        self.north = float(self.root.xpath('.//mmd:north', namespaces=self.ns)[0].text)
+        self.south = float(self.root.xpath('.//mmd:south', namespaces=self.ns)[0].text)
+        self.west = float(self.root.xpath('.//mmd:west', namespaces=self.ns)[0].text)
+        self.east = float(self.root.xpath('.//mmd:east', namespaces=self.ns)[0].text)
+
+    def check_if_within_polygon(self):
+
+        # Create a shapely box (rectangle) from the geographic extent
+        extent_box = box(self.west, self.south, self.east, self.north)
+
+        # Check if the extent box overlaps with the given polygon
+        return extent_box.intersects(polygon) # Returns True or False
+
+    def update_geographic_extent(self, north, south, east, west):
+        # Find the geographic extent elements and update them
+        north_elem = self.root.find(".//mmd:geographic_extent/mmd:rectangle/mmd:north", namespaces=self.ns)
+        south_elem = self.root.find(".//mmd:geographic_extent/mmd:rectangle/mmd:south", namespaces=self.ns)
+        west_elem = self.root.find(".//mmd:geographic_extent/mmd:rectangle/mmd:west", namespaces=self.ns)
+        east_elem = self.root.find(".//mmd:geographic_extent/mmd:rectangle/mmd:east", namespaces=self.ns)
+
+        if north_elem is not None:
+            north_elem.text = str(north)
+        if south_elem is not None:
+            south_elem.text = str(south)
+        if west_elem is not None:
+            west_elem.text = str(west)
+        if east_elem is not None:
+            east_elem.text = str(east)
 
 class Child(MMD):
 
@@ -210,7 +262,7 @@ class Parent(MMD):
         # temporal_extent_start_date
         start_date_parent_element = self.root.find(
             ".//mmd:temporal_extent/mmd:start_date",
-            namespaces=self.root.nsmap
+            namespaces=self.ns
         )
         start_date_child_element = child_MMD.root.find(
             ".//mmd:temporal_extent/mmd:start_date",
@@ -233,7 +285,7 @@ class Parent(MMD):
         # temporal_extent_end_date
         end_date_parent_element = self.root.find(
             ".//mmd:temporal_extent/mmd:end_date",
-            namespaces=self.root.nsmap
+            namespaces=self.ns
         )
         end_date_child_element = child_MMD.root.find(
             ".//mmd:temporal_extent/mmd:end_date",
@@ -258,7 +310,7 @@ class Parent(MMD):
         # geographic extent rectangle north
         #north_parent_element = self.root.find(
         #    ".//mmd:geographic_extent/mmd:rectangle/mmd:north",
-        #    namespaces=self.root.nsmap
+        #    namespaces=self.ns
         #)
         #north_child_element = child_MMD.root.find(
         #    ".//mmd:geographic_extent/mmd:rectangle/mmd:north",
@@ -275,7 +327,7 @@ class Parent(MMD):
         # geographic extent rectangle east
         #east_parent_element = self.root.find(
         #    ".//mmd:geographic_extent/mmd:rectangle/mmd:east",
-        #    namespaces=self.root.nsmap
+        #    namespaces=self.ns
         #)
         #east_child_element = child_MMD.root.find(
         #    ".//mmd:geographic_extent/mmd:rectangle/mmd:east",
@@ -292,7 +344,7 @@ class Parent(MMD):
         # geographic extent rectangle south
         #south_parent_element = self.root.find(
         #    ".//mmd:geographic_extent/mmd:rectangle/mmd:south",
-        #    namespaces=self.root.nsmap
+        #    namespaces=self.ns
         #)
         #south_child_element = child_MMD.root.find(
         #    ".//mmd:geographic_extent/mmd:rectangle/mmd:south",
@@ -309,7 +361,7 @@ class Parent(MMD):
         # geographic extent rectangle west
         #west_parent_element = self.root.find(
         #    ".//mmd:geographic_extent/mmd:rectangle/mmd:west",
-        #    namespaces=self.root.nsmap
+        #    namespaces=self.ns
         #)
         #west_child_element = child_MMD.root.find(
         #    ".//mmd:geographic_extent/mmd:rectangle/mmd:west",
