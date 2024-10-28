@@ -283,27 +283,27 @@ class Parent(MMD):
                 pass
 
         # temporal_extent_end_date
-        end_date_parent_element = self.root.find(
-            ".//mmd:temporal_extent/mmd:end_date",
-            namespaces=self.ns
-        )
-        end_date_child_element = child_MMD.root.find(
-            ".//mmd:temporal_extent/mmd:end_date",
-            namespaces=child_MMD.root.nsmap
-        )
-        if end_date_parent_element is not None and end_date_child_element is not None:
-            end_date_parent_text = end_date_parent_element.text
-            end_date_child_text = end_date_child_element.text
-            end_date_parent_dt = datetime.strptime(end_date_parent_text, '%Y-%m-%dT%H:%M:%S.%fZ')
-            try:
-                end_date_child_dt = datetime.strptime(end_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
-            except:
-                end_date_child_text = end_date_child_text + 'T00:00:00.000Z'
-                end_date_child_dt = datetime.strptime(end_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
-            if end_date_child_dt > end_date_parent_dt:
-                end_date_parent_element.text = end_date_child_element.text
-            else:
-                pass
+        #end_date_parent_element = self.root.find(
+        #    ".//mmd:temporal_extent/mmd:end_date",
+        #    namespaces=self.ns
+        #)
+        #end_date_child_element = child_MMD.root.find(
+        #    ".//mmd:temporal_extent/mmd:end_date",
+        #    namespaces=child_MMD.root.nsmap
+        #)
+        #if end_date_parent_element is not None and end_date_child_element is not None:
+        #    end_date_parent_text = end_date_parent_element.text
+        #    end_date_child_text = end_date_child_element.text
+        #    end_date_parent_dt = datetime.strptime(end_date_parent_text, '%Y-%m-%dT%H:%M:%S.%fZ')
+        #    try:
+        #        end_date_child_dt = datetime.strptime(end_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
+        #    except:
+        #        end_date_child_text = end_date_child_text + 'T00:00:00.000Z'
+        #        end_date_child_dt = datetime.strptime(end_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
+        #    if end_date_child_dt > end_date_parent_dt:
+        #        end_date_parent_element.text = end_date_child_element.text
+        #    else:
+        #        pass
 
         # Extent looks off in parent products so removing this code and populating manually
         # Based on child products already there (covering several years)
