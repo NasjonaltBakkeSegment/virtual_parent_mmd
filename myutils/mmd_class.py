@@ -197,6 +197,10 @@ class Parent(MMD):
         if start_date_parent_element is not None and start_date_child_element is not None:
             start_date_parent_text = start_date_parent_element.text
             start_date_child_text = start_date_child_element.text
+            if not start_date_parent_text.endswith('Z'):
+                start_date_parent_text += 'Z'
+            if not start_date_child_text.endswith('Z'):
+                start_date_child_text += 'Z'
             start_date_parent_dt = datetime.strptime(start_date_parent_text, '%Y-%m-%dT%H:%M:%S.%fZ')
             try:
                 start_date_child_dt = datetime.strptime(start_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
