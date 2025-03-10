@@ -1,4 +1,5 @@
 # .gitignore
+OUT*
 __pycache__/
 *.pyc
 *.pyo
