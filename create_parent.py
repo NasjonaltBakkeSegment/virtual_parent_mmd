@@ -86,7 +86,7 @@ def main(platform, product_type):
     parent_path = get_parent_path(platform, product_type, root_path)
 
     for child_path in children:
-        logger.info(f'{child_path}')
+        logger.info(f'Processing child: {child_path}')
         if os.path.exists(parent_path):
             logger.info(f"Parent {parent_path} exists. Trying to update it with metadata from new child.")
             update_parent_mmd(parent_path, child_path, parent_id)

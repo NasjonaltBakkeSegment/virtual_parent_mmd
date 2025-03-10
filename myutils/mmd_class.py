@@ -203,7 +203,10 @@ class Parent(MMD):
                 start_date_child_text += 'Z'
             start_date_parent_dt = datetime.strptime(start_date_parent_text, '%Y-%m-%dT%H:%M:%S.%fZ')
             try:
-                start_date_child_dt = datetime.strptime(start_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
+                try:
+                    start_date_child_dt = datetime.strptime(start_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
+                except:
+                    start_date_child_dt = datetime.strptime(start_date_child_text, '%Y-%m-%dT%H:%M:%SZ')
             except:
                 start_date_child_text = start_date_child_text + 'T00:00:00.000Z'
                 start_date_child_dt = datetime.strptime(start_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
