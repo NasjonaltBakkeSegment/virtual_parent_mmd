@@ -86,16 +86,14 @@ def main(platform, product_type):
     parent_path = get_parent_path(platform, product_type, root_path)
 
     for child_path in children:
-        # TODO: Work out how to update the parent with geospatial limits etc of child
-        # TODO: Remove elements from parent that aren't required.
-        # if os.path.exists(parent_path):
-        #     logger.info(f"Parent {parent_path} exists. Trying to update it with metadata from new child.")
-        #     update_parent_mmd(parent_path, child_path)
-        #     logger.info(f"Parent {parent_path} updated successfully.")
-        # else:
-        logger.info(f"Parent {parent_path} does not exist. Trying to create it.")
-        create_parent_mmd(parent_path, child_path, parent_id)
-        logger.info(f"Parent {parent_path} created successfully.")
+        if os.path.exists(parent_path):
+            logger.info(f"Parent {parent_path} exists. Trying to update it with metadata from new child.")
+            update_parent_mmd(parent_path, child_path, parent_id)
+            logger.info(f"Parent {parent_path} updated successfully.")
+        else:
+            logger.info(f"Parent {parent_path} does not exist. Trying to create it.")
+            create_parent_mmd(parent_path, child_path, parent_id)
+            logger.info(f"Parent {parent_path} created successfully.")
 
 if __name__ == "__main__":
 
