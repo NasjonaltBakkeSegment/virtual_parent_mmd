@@ -124,12 +124,15 @@ class Parent(MMD):
             './/mmd:storage_information',
             './/mmd:data_access',
             './/mmd:related_dataset',
+            './/mmd:platform/mmd:ancillary',
             './/mmd:platform/mmd:orbit_relative',
             './/mmd:platform/mmd:orbit_absolute',
             './/mmd:platform/mmd:orbit_direction', # polygon
             './/mmd:geographic_extent/mmd:polygon',
-            './/mmd:temporal_extent/mmd:end_date'
+            './/mmd:temporal_extent/mmd:end_date',
+            './/mmd:dataset_citation/mmd:url'
         ]
+
         for element in elements_to_remove:
             self.remove_element(element)
 
@@ -145,18 +148,50 @@ class Parent(MMD):
         )
         rectangle_element.tail = '\n\t'
 
+        instrument_element = self.root.find(
+            ".//mmd:platform/mmd:instrument",
+            namespaces=self.ns
+        )
+        instrument_element.tail = '\n\t'
+
         # Fixing indentation after last element
         children = self.root.getchildren()
         index_of_last_element = len(children) - 1
         last_element = children[index_of_last_element]
         last_element.tail = '\n'
 
+    def update_bounding_box(self):
+        north_element = self.root.find(
+            ".//mmd:geographic_extent/mmd:rectangle/mmd:north",
+            namespaces=self.root.nsmap
+        )
+        north_element.text = '90'
+
+        south_element = self.root.find(
+            ".//mmd:geographic_extent/mmd:rectangle/mmd:south",
+            namespaces=self.root.nsmap
+        )
+        south_element.text = '-90'
+
+        east_element = self.root.find(
+            ".//mmd:geographic_extent/mmd:rectangle/mmd:east",
+            namespaces=self.root.nsmap
+        )
+        east_element.text = '180'
+
+        west_element = self.root.find(
+            ".//mmd:geographic_extent/mmd:rectangle/mmd:west",
+            namespaces=self.root.nsmap
+        )
+        west_element.text = '-180'
+
+
     def update_elements_first_child(self, child_MMD):
         '''
         Adding new elements or updating existing elements
         To be used only when the parent MMD file is first created
         '''
-        title = self.filename
+        title = self.filename.split('.')[0]
         parent_url = self.define_url()
         metadata_identifier = (
             child_MMD.root.find(
@@ -172,9 +207,7 @@ class Parent(MMD):
             ".//mmd:metadata_identifier": metadata_identifier,
             ".//mmd:dataset_production_status": 'Ongoing',
             './/mmd:dataset_citation/mmd:publication_date': current_timestamp,
-            './/mmd:dataset_citation/mmd:title': title,
-            './/mmd:dataset_citation/mmd:url': parent_url,
-            './/mmd:related_information/mmd:resource': parent_url
+            './/mmd:dataset_citation/mmd:title': title
         }
 
         for element, value in elements.items():
@@ -184,7 +217,6 @@ class Parent(MMD):
         '''
         Updating MMD elements for the parent each time a new child is added
         '''
-        # TODO: Check all this works
         # temporal_extent_start_date
         start_date_parent_element = self.root.find(
             ".//mmd:temporal_extent/mmd:start_date",
@@ -195,92 +227,12 @@ class Parent(MMD):
             namespaces=child_MMD.root.nsmap
         )
         if start_date_parent_element is not None and start_date_child_element is not None:
-            start_date_parent_text = start_date_parent_element.text
-            start_date_child_text = start_date_child_element.text
-            if not start_date_parent_text.endswith('Z'):
-                start_date_parent_text += 'Z'
-            if not start_date_child_text.endswith('Z'):
-                start_date_child_text += 'Z'
-            start_date_parent_dt = datetime.strptime(start_date_parent_text, '%Y-%m-%dT%H:%M:%S.%fZ')
-            try:
-                try:
-                    start_date_child_dt = datetime.strptime(start_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
-                except:
-                    start_date_child_dt = datetime.strptime(start_date_child_text, '%Y-%m-%dT%H:%M:%SZ')
-            except:
-                start_date_child_text = start_date_child_text + 'T00:00:00.000Z'
-                start_date_child_dt = datetime.strptime(start_date_child_text, '%Y-%m-%dT%H:%M:%S.%fZ')
-            if start_date_child_dt < start_date_parent_dt:
+            # Split at the 'T' to extract the date part
+            parent_date_str = start_date_parent_element.text.partition('T')[0]
+            child_date_str = start_date_child_element.text.partition('T')[0]
+
+            parent_date = datetime.strptime(parent_date_str, '%Y-%m-%d')
+            child_date = datetime.strptime(child_date_str, '%Y-%m-%d')
+
+            if child_date < parent_date:
                 start_date_parent_element.text = start_date_child_element.text
-            else:
-                pass
-
-        # Extent looks off in parent products so removing this code and populating manually
-        # Based on child products already there (covering several years)
-        # geographic extent rectangle north
-        north_parent_element = self.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:north",
-            namespaces=self.ns
-        )
-        north_child_element = child_MMD.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:north",
-            namespaces=child_MMD.root.nsmap
-        )
-        if north_parent_element is not None and north_child_element is not None:
-            north_parent_text = north_parent_element.text
-            north_child_text = north_child_element.text
-            if north_child_text > north_parent_text:
-                north_parent_element.text = north_child_element.text
-            else:
-                pass
-
-        # geographic extent rectangle east
-        east_parent_element = self.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:east",
-            namespaces=self.ns
-        )
-        east_child_element = child_MMD.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:east",
-            namespaces=child_MMD.root.nsmap
-        )
-        if east_parent_element is not None and east_child_element is not None:
-            east_parent_text = east_parent_element.text
-            east_child_text = east_child_element.text
-            if east_child_text > east_parent_text:
-                east_parent_element.text = east_child_element.text
-            else:
-                pass
-
-        # geographic extent rectangle south
-        south_parent_element = self.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:south",
-            namespaces=self.ns
-        )
-        south_child_element = child_MMD.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:south",
-            namespaces=child_MMD.root.nsmap
-        )
-        if south_parent_element is not None and south_child_element is not None:
-            south_parent_text = south_parent_element.text
-            south_child_text = south_child_element.text
-            if south_child_text < south_parent_text:
-                south_parent_element.text = south_child_element.text
-            else:
-                pass
-
-        # geographic extent rectangle west
-        west_parent_element = self.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:west",
-            namespaces=self.ns
-        )
-        west_child_element = child_MMD.root.find(
-            ".//mmd:geographic_extent/mmd:rectangle/mmd:west",
-            namespaces=child_MMD.root.nsmap
-        )
-        if west_parent_element is not None and west_child_element is not None:
-            west_parent_text = west_parent_element.text
-            west_child_text = west_child_element.text
-            if west_child_text < west_parent_text:
-                west_parent_element.text = west_child_element.text
-            else:
-                pass

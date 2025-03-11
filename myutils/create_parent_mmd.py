@@ -10,5 +10,6 @@ def create_parent_mmd(parent_filepath, child_filepath, parent_id):
     child_mmd.copy(parent_mmd.filepath)
     parent_mmd.read()
     parent_mmd.update_elements_first_child(child_mmd)
+    parent_mmd.update_bounding_box()
     parent_mmd.remove_elements()
     parent_mmd.write()

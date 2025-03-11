@@ -125,3 +125,5 @@ if __name__ == "__main__":
     product_type = args.product_type
 
     main(platform, product_type)
+
+# TODO: As we move away from the ESA software, geospatial extent should be whole globe.
