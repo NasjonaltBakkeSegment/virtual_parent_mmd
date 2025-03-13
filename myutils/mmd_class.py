@@ -205,7 +205,7 @@ class Parent(MMD):
             './/mmd:last_metadata_update/mmd:update/mmd:type': 'Created',
             ".//mmd:title": title,
             ".//mmd:metadata_identifier": metadata_identifier,
-            ".//mmd:dataset_production_status": 'Ongoing',
+            ".//mmd:dataset_production_status": 'In Work',
             './/mmd:dataset_citation/mmd:publication_date': current_timestamp,
             './/mmd:dataset_citation/mmd:title': title
         }
